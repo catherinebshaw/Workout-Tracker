@@ -1,5 +1,3 @@
-const API = require('api.js')
-
 init();
 
 async function init() {
