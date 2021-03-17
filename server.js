@@ -1,36 +1,40 @@
 const express = require('express');
 const mongoose = require("mongoose");
-const path = require('path')
-const Workouts = require('./models/workout_model');
+const path = require('path');
+const Workout = require('./models/workout_model');
 const PORT = process.env.PORT || 3000;
-const app = express();
+var app = express();
 
-const db = mongoose.connection
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("public"));
 
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function (){
-    console.log('connected!')
-});
 
-mongoose.connect( "mongodb://localhost/workout", { useNewUrlParser: true, useUnifiedTopology: true });
-// process.env.MONGODB_URI ||
+mongoose.connect(  process.env.MONGODB_URI ||"mongodb://localhost/workout", { useNewUrlParser: true, useUnifiedTopology: true });
 
 
+// html routes
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname + "./public/index.html"));
   });
-  app.get("/exercises", (req, res) => {
-    res.sendFile(path.join(__dirname + "./public/exercises.html"));
+  
+app.get("/exercise", (req, res) => {
+    res.sendFile(path.join(__dirname + "/public/exercise.html"));
   });
+  
+  app.get("/stats", (req, res) => {
+    res.sendFile(path.join(__dirname + "/public/stats.html"));
+  });
+
+
+
+//api routes
 
 // GET - retrieve data for the last workout  
 app.get("/api/workouts", (req, res) => {
 
-    Workouts.aggregate([
+    Workout.aggregate([
         {
             $addFields: {
                 totalDuration: {
@@ -40,9 +44,9 @@ app.get("/api/workouts", (req, res) => {
         }
     ])
     
-    .then((dbWorkouts) => {
-        console.log(`[SUM]`, dbWorkouts);
-        res.json(dbWorkouts);
+    .then((Workout) => {
+        console.log(`[GET]`, Workout);
+        res.json(Workout);
         })
         .catch((err) => {
             res.json(err);
@@ -52,32 +56,31 @@ app.get("/api/workouts", (req, res) => {
 
 app.put("/api/workouts/:id", async (req,res) => {
     try{
-        var updateWorkout = await Workouts.update( 
-        {_id: mongojs.ObjectID(params.id)},
-        {$set: { day: Date.now} });
+        var updateWorkout = await Workout.findByIdAndUpdate( 
+        {_id: req.params.id},
+        {$push: { exercises:req.body}});
         
-        var result = updateWorkout.save()
+        res.json(updateWorkout)
         
-        console.log('[PUT]', result);
-        response.send(result);
+        
     } catch (error) {
-        response.status(500).send(error);
+        console.log(error);
     }
 });
 
-app.post("/api/workouts", async(req,res) => {
-    try {
-    var data = request.body
-    var newExercise = new Workouts.insert(data);
-    var result = await newExercise.save();
-    console.log('[POST]', result)
-    } catch (error) {
-        response.status(500).send(error);
-    }
+app.post("/api/workouts", (req, res) => {
+
+   Workout.create({})
+    .then(dbWorkout => {
+        res.json(dbWorkout)
+    })
+    .catch (error => {
+        console.log(error);
+    })
 });
 
-app.get('/api/workouts/range'), (req,res) => {
-    Workouts.aggregate(
+app.get("/api/workouts/range", (req,res) => {
+    Workout.aggregate([
         {
             $addFields: {
                 totalDuration: {
@@ -85,20 +88,20 @@ app.get('/api/workouts/range'), (req,res) => {
                 },
             },
         }
-    )
+    ])
     .sort({ _id: -1 })
     .limit(7)
-    .then((dbWorkouts) => {
-        console.log(`[SUM]`, dbWorkouts);
-        res.json(dbWorkouts);
+    .then((Workout) => {
+        console.log(`[SUM]`, Workout);
+        res.json(Workout);
         })
         .catch((err) => {
             res.json(err);
         }
     )
 
-}
+})
 
 app.listen(3000, () => {
-    console.log("App running on port 3000!");
+    console.log("App running on http://localhost:3000");
   });
