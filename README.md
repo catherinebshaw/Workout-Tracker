@@ -14,8 +14,8 @@ As soon as a user logs in, they are presented with the date and details of their
 
 ## Mock-Up
 
-![Fitness Tacker Visual]()
+![Fitness Tacker Visual](https://github.com/catherinebshaw/Workout-Tracker/blob/main/public/Workout-TrackerSS2.png)
 
 ## Live Site
 
-[Workout Tracker]()
+[Workout Tracker](https://workout-tracker-cs.herokuapp.com/)
