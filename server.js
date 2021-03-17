@@ -73,9 +73,9 @@ app.put("/api/workouts/:id", async (req,res) => {
     }
 });
 
-app.post("/api/workouts", (req, res) => {
+app.post("/api/workouts", ({body}, res) => {
 
-   Workout.create({})
+   Workout.create({body})
     .then(dbWorkout => {
         res.json(dbWorkout)
     })
